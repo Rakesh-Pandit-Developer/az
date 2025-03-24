@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Mobile Keyboard with Permanent Save</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    input {
+      width: 90%;
+      height: 120px;
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      outline: none;
+    }
+    .keyboard {
+      width: 100%;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .key {
+      width: 120px;
+      height: 120px;
+      font-size: 60px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 120px;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .key:hover {
+      background-color: #45a049;
+    }
+    /* Special keys container styling for mobile */
+    .special-keys-container {
+      width: 90%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .special-key {
+      height: 60px;
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 60px;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+    .special-key:hover {
+      background-color: #45a049;
+    }
+    /* Widths for special keys */
+    .space-key, .backspace-key {
+      width: 40%;
+    }
+    .save-key {
+      width: 20%;
+      font-size: 24px;
+      line-height: 60px;
+    }
+    /* Saved entries list */
+    .saved-list {
+      width: 90%;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      max-height: 15vh;
+      overflow-y: auto;
+    }
+    .saved-list h3 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .saved-item {
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+      font-size: 18px;
+    }
+    .saved-item:last-child {
+      border-bottom: none;
+    }
+    .timestamp {
+      font-size: 12px;
+      color: #666;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Input Field -->
+  <input type="text" id="textInput" placeholder="Type here..." readonly />
+
+  <!-- Letter Keys Keyboard -->
+  <div class="keyboard" id="keyboard"></div>
+
+  <!-- Special Keys Container -->
+  <div class="special-keys-container">
+    <div class="special-key space-key" id="spaceKey">␣</div>
+    <div class="special-key save-key" id="saveKey">Save</div>
+    <div class="special-key backspace-key" id="backspaceKey">⌫</div>
+  </div>
+
+  <!-- Saved Entries List -->
+  <div class="saved-list">
+    <h3>Saved Entries</h3>
+    <ul id="savedList"></ul>
+  </div>
+
+  <script>
+    const textInput = document.getElementById("textInput");
+    const keyboardDiv = document.getElementById("keyboard");
+    const savedList = document.getElementById("savedList");
+
+    // Function to render saved entries from localStorage
+    function renderSavedEntries() {
+      savedList.innerHTML = "";
+      const entries = JSON.parse(localStorage.getItem("savedEntries")) || [];
+      entries.forEach(entry => {
+        const li = document.createElement("li");
+        li.classList.add("saved-item");
+        li.innerHTML = `<span class="timestamp">${entry.timestamp}:</span> ${entry.text}`;
+        savedList.appendChild(li);
+      });
+    }
+
+    // Function to add new entry and update localStorage
+    function saveEntry(text) {
+      const now = new Date();
+      const timestamp = now.toLocaleString();
+      const entry = { timestamp, text };
+      const entries = JSON.parse(localStorage.getItem("savedEntries")) || [];
+      entries.push(entry);
+      localStorage.setItem("savedEntries", JSON.stringify(entries));
+      renderSavedEntries();
+    }
+
+    // Generate A-Z letter keys
+    for (let i = 65; i <= 90; i++) {
+      let key = document.createElement("div");
+      key.classList.add("key");
+      key.textContent = String.fromCharCode(i);
+      key.onclick = () => textInput.value += key.textContent;
+      keyboardDiv.appendChild(key);
+    }
+
+    // Special keys events
+    document.getElementById("spaceKey").onclick = () => {
+      textInput.value += " ";
+    };
+
+    document.getElementById("backspaceKey").onclick = () => {
+      textInput.value = textInput.value.slice(0, -1);
+    };
+
+    document.getElementById("saveKey").onclick = () => {
+      const text = textInput.value.trim();
+      if (text !== "") {
+        saveEntry(text);
+        textInput.value = "";
+      }
+    };
+
+    // Load saved entries on page load
+    renderSavedEntries();
+  </script>
+
+</body>
+</html>
